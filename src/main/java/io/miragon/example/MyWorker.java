@@ -10,11 +10,27 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MyWorker {
 
-    @Worker(type = "my-type")
-    public DoSomethingResult doSomething(DoSomethingCommand doSomethingCommand) {
-        log.info("Received command: " + doSomethingCommand);
+    @Worker(type = "absence:saveToSAP")
+    public DoSomethingResult saveToSAP(DoSomethingCommand doSomethingCommand) {
+        log.info("Received command to save to SAP: " + doSomethingCommand);
         var result = doSomethingCommand.getCommand() + " result";
-        log.info("Returning result: " + result);
+        log.info("Returning result from saving to SAP: " + result);
+        return new DoSomethingResult(result);
+    }
+
+    @Worker(type = "absence:sendMail")
+    public DoSomethingResult sendMail(DoSomethingCommand doSomethingCommand) {
+        log.info("Received command so send Mail: " + doSomethingCommand);
+        var result = doSomethingCommand.getCommand() + " result";
+        log.info("Returning result from sending Mail: " + result);
+        return new DoSomethingResult(result);
+    }
+
+    @Worker(type = "absence:deleteFromSAP")
+    public DoSomethingResult deleteFromSAP(DoSomethingCommand doSomethingCommand) {
+        log.info("Received command to delete from SAP: " + doSomethingCommand);
+        var result = doSomethingCommand.getCommand() + " result";
+        log.info("Returning result from deleting from SAP: " + result);
         return new DoSomethingResult(result);
     }
 
@@ -23,7 +39,7 @@ public class MyWorker {
     @AllArgsConstructor
     @NoArgsConstructor
     static class DoSomethingCommand {
-        private String command;
+        private Object command;
     }
 
     @Getter
@@ -31,6 +47,6 @@ public class MyWorker {
     @AllArgsConstructor
     @NoArgsConstructor
     static class DoSomethingResult {
-        private String result;
+        private Object result;
     }
 }

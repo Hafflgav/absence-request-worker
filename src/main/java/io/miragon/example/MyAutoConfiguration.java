@@ -13,13 +13,4 @@ public class MyAutoConfiguration {
         return new MyWorker();
     }
 
-    @Bean
-    public MyMessageCorrelation myMessageCorrelation(final MessageApi messageApi) {
-        return new MyMessageCorrelation(messageApi);
-    }
-
-    @Bean
-    public MyProcessStart myProcessStart(final StartProcessPort startProcessPort) {
-        return new MyProcessStart (startProcessPort);
-    }
 }

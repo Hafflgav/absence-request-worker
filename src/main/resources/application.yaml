@@ -6,6 +6,10 @@ camunda:
   autoDeploy:
     enabled: false
   disable-backoff-strategy: true
+  basic-auth:
+    username: ${CAMUNDA_USERNAME:demo}
+    password: ${CAMUNDA_PASSWORD:demo}
+
 
 # Camunda Platform 8
 # local configuration:
