@@ -1,0 +1,204 @@
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_169jlu4" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.9.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.18.0">
+  <bpmn:collaboration id="Collaboration_01o9x8i">
+    <bpmn:participant id="Participant_1g28x1e" name="Absence Request" processRef="process_absence_request" />
+  </bpmn:collaboration>
+  <bpmn:process id="process_absence_request" name="Absence Request" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="Absence Requested">
+      <bpmn:outgoing>Flow_01jbfkd</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_01jbfkd" sourceRef="StartEvent_1" targetRef="Activity_088fdm9" />
+    <bpmn:userTask id="Activity_088fdm9" name="Decide on request" camunda:formKey="decide-on-absence">
+      <bpmn:incoming>Flow_01jbfkd</bpmn:incoming>
+      <bpmn:outgoing>Flow_0y19ppu</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_1s9wxnh" name="Absence accepted?">
+      <bpmn:incoming>Flow_0y19ppu</bpmn:incoming>
+      <bpmn:outgoing>Flow_1z07ivq</bpmn:outgoing>
+      <bpmn:outgoing>Flow_04manq2</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_0y19ppu" sourceRef="Activity_088fdm9" targetRef="Gateway_1s9wxnh" />
+    <bpmn:sequenceFlow id="Flow_1z07ivq" name="yes" sourceRef="Gateway_1s9wxnh" targetRef="Activity_1asl6bo">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${accepted == "yes"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_04manq2" name="no" sourceRef="Gateway_1s9wxnh" targetRef="Activity_0iufsh7">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${accepted == "no"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1esfa4r" sourceRef="Activity_1asl6bo" targetRef="Activity_1h18cij" />
+    <bpmn:sequenceFlow id="Flow_1xl077y" sourceRef="Activity_1h18cij" targetRef="Event_1vzcbdl" />
+    <bpmn:endEvent id="Event_0xqy6ii" name="Absence declined">
+      <bpmn:incoming>Flow_0to9jlu</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0to9jlu" sourceRef="Activity_0iufsh7" targetRef="Event_0xqy6ii" />
+    <bpmn:sendTask id="Activity_1h18cij" name="Inform employee about accepted absence" camunda:type="external" camunda:topic="absence:sendMail">
+      <bpmn:incoming>Flow_1esfa4r</bpmn:incoming>
+      <bpmn:outgoing>Flow_1xl077y</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sendTask id="Activity_0iufsh7" name="Inform employee about declined absence" camunda:type="external" camunda:topic="absence:sendMail">
+      <bpmn:incoming>Flow_04manq2</bpmn:incoming>
+      <bpmn:outgoing>Flow_0to9jlu</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:serviceTask id="Activity_1asl6bo" name="Save absence to SAP System" camunda:type="external" camunda:topic="absence:saveToSAP">
+      <bpmn:incoming>Flow_1z07ivq</bpmn:incoming>
+      <bpmn:outgoing>Flow_1esfa4r</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:intermediateThrowEvent id="Event_1vzcbdl" name="Absence accepted">
+      <bpmn:incoming>Flow_1xl077y</bpmn:incoming>
+      <bpmn:outgoing>Flow_1gp3c9g</bpmn:outgoing>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="Flow_1gp3c9g" sourceRef="Event_1vzcbdl" targetRef="Activity_0ubmurb" />
+    <bpmn:userTask id="Activity_0ubmurb" name="Cancel Absence" camunda:formKey="cancel-absence">
+      <bpmn:incoming>Flow_1gp3c9g</bpmn:incoming>
+      <bpmn:outgoing>Flow_1wq3049</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="Event_19z99ne" name="Start of Absence reached" attachedToRef="Activity_0ubmurb">
+      <bpmn:outgoing>Flow_1npnphj</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_1wyc3oz">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT1H</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:endEvent id="Event_1k4296r" name="Absence Completed">
+      <bpmn:incoming>Flow_1npnphj</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1npnphj" sourceRef="Event_19z99ne" targetRef="Event_1k4296r" />
+    <bpmn:sequenceFlow id="Flow_1wq3049" sourceRef="Activity_0ubmurb" targetRef="Activity_0t8tyuq" />
+    <bpmn:serviceTask id="Activity_0t8tyuq" name="Delete Absence from SAP System" camunda:type="external" camunda:topic="absence:deleteFromSAP">
+      <bpmn:incoming>Flow_1wq3049</bpmn:incoming>
+      <bpmn:outgoing>Flow_1l8cf5h</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_1l8cf5h" sourceRef="Activity_0t8tyuq" targetRef="Activity_1dw4q1m" />
+    <bpmn:sequenceFlow id="Flow_0ohge4w" sourceRef="Activity_1dw4q1m" targetRef="Event_1ybi49m" />
+    <bpmn:sendTask id="Activity_1dw4q1m" name="Inform Manager and User about cancellation" camunda:type="external" camunda:topic="absence:sendMail">
+      <bpmn:incoming>Flow_1l8cf5h</bpmn:incoming>
+      <bpmn:outgoing>Flow_0ohge4w</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="Event_1ybi49m" name="Absence cancelled">
+      <bpmn:incoming>Flow_0ohge4w</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_01o9x8i">
+      <bpmndi:BPMNShape id="Participant_1g28x1e_di" bpmnElement="Participant_1g28x1e" isHorizontal="true">
+        <dc:Bounds x="250" y="42" width="1440" height="408" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0ohge4w_di" bpmnElement="Flow_0ohge4w">
+        <di:waypoint x="1560" y="240" />
+        <di:waypoint x="1622" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1l8cf5h_di" bpmnElement="Flow_1l8cf5h">
+        <di:waypoint x="1370" y="240" />
+        <di:waypoint x="1460" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1wq3049_di" bpmnElement="Flow_1wq3049">
+        <di:waypoint x="1180" y="240" />
+        <di:waypoint x="1270" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1npnphj_di" bpmnElement="Flow_1npnphj">
+        <di:waypoint x="1180" y="182" />
+        <di:waypoint x="1180" y="120" />
+        <di:waypoint x="1252" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1gp3c9g_di" bpmnElement="Flow_1gp3c9g">
+        <di:waypoint x="1018" y="240" />
+        <di:waypoint x="1080" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0to9jlu_di" bpmnElement="Flow_0to9jlu">
+        <di:waypoint x="760" y="350" />
+        <di:waypoint x="822" y="350" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1xl077y_di" bpmnElement="Flow_1xl077y">
+        <di:waypoint x="920" y="240" />
+        <di:waypoint x="982" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1esfa4r_di" bpmnElement="Flow_1esfa4r">
+        <di:waypoint x="760" y="240" />
+        <di:waypoint x="820" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_04manq2_di" bpmnElement="Flow_04manq2">
+        <di:waypoint x="580" y="265" />
+        <di:waypoint x="580" y="350" />
+        <di:waypoint x="660" y="350" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="589" y="305" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1z07ivq_di" bpmnElement="Flow_1z07ivq">
+        <di:waypoint x="605" y="240" />
+        <di:waypoint x="660" y="240" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="624" y="222" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0y19ppu_di" bpmnElement="Flow_0y19ppu">
+        <di:waypoint x="500" y="240" />
+        <di:waypoint x="555" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_01jbfkd_di" bpmnElement="Flow_01jbfkd">
+        <di:waypoint x="348" y="240" />
+        <di:waypoint x="400" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="312" y="222" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="303" y="265" width="54" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0c6vu8w_di" bpmnElement="Activity_088fdm9">
+        <dc:Bounds x="400" y="200" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1s9wxnh_di" bpmnElement="Gateway_1s9wxnh" isMarkerVisible="true">
+        <dc:Bounds x="555" y="215" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="555" y="185" width="51" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0xqy6ii_di" bpmnElement="Event_0xqy6ii">
+        <dc:Bounds x="822" y="332" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="797" y="375" width="87" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0tm4c4h_di" bpmnElement="Activity_1h18cij">
+        <dc:Bounds x="820" y="200" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0dgs44n_di" bpmnElement="Activity_0iufsh7">
+        <dc:Bounds x="660" y="310" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1jc4d2j_di" bpmnElement="Activity_1asl6bo">
+        <dc:Bounds x="660" y="200" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_06b92t9_di" bpmnElement="Event_1vzcbdl">
+        <dc:Bounds x="982" y="222" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="978" y="265" width="45" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1bppxua_di" bpmnElement="Activity_0ubmurb">
+        <dc:Bounds x="1080" y="200" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1k4296r_di" bpmnElement="Event_1k4296r">
+        <dc:Bounds x="1252" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1243" y="145" width="54" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0uocqvl_di" bpmnElement="Activity_0t8tyuq">
+        <dc:Bounds x="1270" y="200" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0ekpv87_di" bpmnElement="Activity_1dw4q1m">
+        <dc:Bounds x="1460" y="200" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1ybi49m_di" bpmnElement="Event_1ybi49m">
+        <dc:Bounds x="1622" y="222" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1617" y="265" width="47" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0v1vz4d_di" bpmnElement="Event_19z99ne">
+        <dc:Bounds x="1162" y="182" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1189" y="176" width="82" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
